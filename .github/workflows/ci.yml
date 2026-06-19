@@ -1,0 +1,37 @@
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Build
+        run: cargo build --verbose
+
+      - name: Test
+        run: cargo test --verbose
+
+      - name: Clippy
+        run: cargo clippy -- -D warnings
+
+      - name: Format check
+        run: cargo fmt --check
+
+      - name: Smoke test the CLI (pack -> verify -> unpack)
+        run: |
+          cargo run --quiet -- pack examples/hello-skill -o /tmp/hello.skillpack
+          cargo run --quiet -- verify /tmp/hello.skillpack
+          cargo run --quiet -- info /tmp/hello.skillpack --json
+          cargo run --quiet -- unpack /tmp/hello.skillpack -o /tmp/hello-out
+          test -f /tmp/hello-out/scripts/greet.py

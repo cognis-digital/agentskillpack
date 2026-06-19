@@ -1,0 +1,13 @@
+# Rust build artifacts
+/target/
+**/*.rs.bk
+
+# Cargo lockfile is kept for the binary (commit it). Nothing to ignore there.
+
+# Editor / OS noise
+*.swp
+.DS_Store
+Thumbs.db
+
+# Packed archives produced while testing
+*.skillpack

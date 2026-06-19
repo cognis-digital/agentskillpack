@@ -1,0 +1,29 @@
+[package]
+name = "agentskillpack"
+version = "0.1.0"
+edition = "2021"
+authors = ["Cognis Digital"]
+license = "LicenseRef-COCL-1.0"
+description = "Portable packaging format and CLI for distributing AI-agent skills as single .skillpack archives."
+repository = "https://github.com/cognis-digital/agentskillpack"
+readme = "README.md"
+keywords = ["agent", "skill", "packaging", "archive", "manifest"]
+categories = ["command-line-utilities", "filesystem"]
+
+[[bin]]
+name = "agentskillpack"
+path = "src/main.rs"
+
+[lib]
+name = "agentskillpack"
+path = "src/lib.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true

@@ -1,0 +1,7 @@
+{
+  "name": "hello-skill",
+  "version": "1.0.0",
+  "description": "A minimal sample agent skill: greets the user and shows the manifest layout.",
+  "entrypoint": "scripts/greet.py",
+  "tags": ["example", "greeting"]
+}
