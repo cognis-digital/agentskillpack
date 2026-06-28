@@ -18,6 +18,37 @@ No external services, no network calls, minimal dependencies (`serde`,
 
 License: COCL 1.0. Maintainer: Cognis Digital.
 
+
+<!-- cognis:example:start -->
+## 🔎 Example output
+
+**Sample result format** _(illustrative values — run on your own data for real findings):_
+
+```
+{
+  "agent": {
+    "id": "1234",
+    "name": "John Doe"
+  },
+  "skills": [
+    {
+      "id": "1",
+      "name": "Python Programming",
+      "level": 8,
+      "certified": true
+    },
+    {
+      "id": "2",
+      "name": "Data Analysis",
+      "level": 6,
+      "certified": false
+    }
+  ]
+}
+```
+
+<!-- cognis:example:end -->
+
 ## Install / build
 
 ```sh
