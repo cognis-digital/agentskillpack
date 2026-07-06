@@ -10,9 +10,12 @@ fn committed_schema_matches_generator() {
     let generated = json_schema();
     let path = concat!(env!("CARGO_MANIFEST_DIR"), "/docs/skill.schema.json");
     let on_disk = std::fs::read_to_string(path).expect("docs/skill.schema.json exists");
+    // Normalize line endings: git may check the file out with CRLF on Windows,
+    // while the generator always emits LF. Content equality is what matters.
+    let norm = |s: &str| s.replace("\r\n", "\n").trim().to_string();
     assert_eq!(
-        generated.trim(),
-        on_disk.trim(),
+        norm(&generated),
+        norm(&on_disk),
         "docs/skill.schema.json is stale — regenerate with `cargo run -- schema`"
     );
 }
