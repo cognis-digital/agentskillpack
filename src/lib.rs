@@ -38,6 +38,11 @@ use std::path::{Component, Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
+pub mod manifest;
+pub mod registry;
+pub mod resolve;
+pub mod sign;
+
 /// Magic bytes at the start of every archive.
 pub const MAGIC: &[u8; 8] = b"SKILLPAK";
 /// Current container format version.
@@ -146,7 +151,7 @@ pub fn sha256_hex(bytes: &[u8]) -> String {
 
 /// Normalize a relative path to forward slashes and reject anything that
 /// escapes the skill root (absolute paths, `..`, drive prefixes, etc.).
-fn safe_relative(path: &Path) -> Result<String> {
+pub(crate) fn safe_relative(path: &Path) -> Result<String> {
     let mut parts = Vec::new();
     for comp in path.components() {
         match comp {
@@ -195,6 +200,10 @@ fn collect_files(root: &Path) -> Result<Vec<(String, PathBuf)>> {
 ///
 /// The directory must contain a `skill.json` manifest (used for name/version);
 /// if fields are missing they fall back to the directory name and `"0.0.0"`.
+///
+/// This does *not* run full typed-manifest validation (so it stays usable for
+/// bare directories). Use [`pack_dir_validated`] to reject a directory whose
+/// `skill.json` fails the rich [`manifest::Manifest`] rules.
 pub fn pack_dir(skill_dir: &Path) -> Result<Vec<u8>> {
     if !skill_dir.is_dir() {
         return Err(Error::Manifest(format!(
@@ -246,6 +255,23 @@ pub fn pack_dir(skill_dir: &Path) -> Result<Vec<u8>> {
     };
 
     serialize(&header, &blobs)
+}
+
+/// Like [`pack_dir`], but first parses `skill.json` as a rich
+/// [`manifest::Manifest`] and runs full validation. Fails before packing if the
+/// manifest is missing, malformed, or breaks any validation rule.
+pub fn pack_dir_validated(skill_dir: &Path) -> Result<Vec<u8>> {
+    let manifest_path = skill_dir.join(MANIFEST_NAME);
+    if !manifest_path.is_file() {
+        return Err(Error::Manifest(format!(
+            "{} has no {MANIFEST_NAME} to validate",
+            skill_dir.display()
+        )));
+    }
+    let raw = fs::read(&manifest_path)?;
+    // Surfaces parse + semantic problems as a single clear error.
+    manifest::Manifest::parse_and_validate(&raw)?;
+    pack_dir(skill_dir)
 }
 
 /// Serialize a header plus its ordered blobs into the container byte stream.
