@@ -11,3 +11,11 @@ Thumbs.db
 
 # Packed archives produced while testing
 *.skillpack
+*.skillpack.sig
+
+# CI / local smoke-test scratch artifacts
+/keys/
+/reg/
+/hello-out/
+/hello.skillpack
+skillpack.lock

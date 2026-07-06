@@ -2,12 +2,17 @@ name: ci
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, flagship]
   pull_request:
 
 jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
+  build-test:
+    name: build & test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
 
@@ -16,22 +21,57 @@ jobs:
         with:
           components: rustfmt, clippy
 
+      - name: Format check
+        run: cargo fmt --all -- --check
+
+      - name: Clippy (deny warnings)
+        run: cargo clippy --all-targets -- -D warnings
+
       - name: Build
         run: cargo build --verbose
 
       - name: Test
         run: cargo test --verbose
 
-      - name: Clippy
-        run: cargo clippy -- -D warnings
-
-      - name: Format check
-        run: cargo fmt --check
-
-      - name: Smoke test the CLI (pack -> verify -> unpack)
+      - name: Smoke test the CLI (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
         run: |
-          cargo run --quiet -- pack examples/hello-skill -o /tmp/hello.skillpack
-          cargo run --quiet -- verify /tmp/hello.skillpack
-          cargo run --quiet -- info /tmp/hello.skillpack --json
-          cargo run --quiet -- unpack /tmp/hello.skillpack -o /tmp/hello-out
-          test -f /tmp/hello-out/scripts/greet.py
+          set -e
+          cargo build --release
+          BIN=target/release/agentskillpack
+          "$BIN" pack examples/hello-skill -o hello.skillpack --validate
+          "$BIN" verify hello.skillpack
+          "$BIN" info hello.skillpack --json
+          "$BIN" keygen -o keys --name author
+          "$BIN" sign hello.skillpack --key keys/author.key
+          "$BIN" verify hello.skillpack --pubkey keys/author.pub
+          "$BIN" registry add hello.skillpack --registry reg
+          "$BIN" registry resolve hello-skill --req '^1.0' --registry reg
+          "$BIN" unpack hello.skillpack -o hello-out
+          test -f hello-out/scripts/greet.py
+
+      - name: Smoke test the CLI (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          cargo build --release
+          $bin = "target/release/agentskillpack.exe"
+          & $bin pack examples/hello-skill -o hello.skillpack --validate; if ($LASTEXITCODE) { exit 1 }
+          & $bin verify hello.skillpack; if ($LASTEXITCODE) { exit 1 }
+          & $bin keygen -o keys --name author; if ($LASTEXITCODE) { exit 1 }
+          & $bin sign hello.skillpack --key keys/author.key; if ($LASTEXITCODE) { exit 1 }
+          & $bin verify hello.skillpack --pubkey keys/author.pub; if ($LASTEXITCODE) { exit 1 }
+          & $bin registry add hello.skillpack --registry reg; if ($LASTEXITCODE) { exit 1 }
+          & $bin unpack hello.skillpack -o hello-out; if ($LASTEXITCODE) { exit 1 }
+          if (-not (Test-Path hello-out/scripts/greet.py)) { exit 1 }
+
+      - name: Run demo suite (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: bash demos/run_all.sh
+
+      - name: Run demo suite (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: pwsh demos/run_all.ps1
