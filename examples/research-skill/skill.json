@@ -1,0 +1,29 @@
+{
+  "manifest_version": 1,
+  "name": "research-skill",
+  "version": "1.4.2",
+  "description": "A richer example skill: fetches a page, extracts text, writes a report. Demonstrates declared capabilities, a dependency, and typed inputs/outputs.",
+  "license": "COCL-1.0",
+  "authors": ["Cognis Digital"],
+  "entrypoint": "scripts/research.py",
+  "tags": ["example", "research", "web"],
+  "capabilities": [
+    { "kind": "net", "scope": ["https"] },
+    { "kind": "fs.write", "scope": ["./reports"] },
+    { "kind": "fs.read", "scope": ["./templates"] }
+  ],
+  "dependencies": [
+    { "name": "hello-skill", "req": "^1.0" }
+  ],
+  "inputs": [
+    { "name": "url", "type": "string", "description": "Page to fetch", "required": true },
+    { "name": "max_words", "type": "number", "description": "Report length cap" }
+  ],
+  "outputs": [
+    { "name": "report", "type": "file", "description": "Markdown report path" }
+  ],
+  "compat": {
+    "engine": ">=0.3, <2.0",
+    "engine_name": "cognis-agent"
+  }
+}
