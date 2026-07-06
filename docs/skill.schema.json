@@ -1,0 +1,157 @@
+{
+  "$defs": {
+    "ioFieldArray": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "required": {
+            "default": false,
+            "type": "boolean"
+          },
+          "type": {
+            "enum": [
+              "string",
+              "number",
+              "boolean",
+              "object",
+              "array",
+              "file"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    }
+  },
+  "$id": "https://cognis.digital/schemas/skill.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Typed manifest (skill.json) for an AI-agent skill packaged with agentskillpack.",
+  "properties": {
+    "authors": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "capabilities": {
+      "description": "Declared powers the skill requests from the host.",
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "fs.read",
+              "fs.write",
+              "net",
+              "exec",
+              "env"
+            ],
+            "type": "string"
+          },
+          "scope": {
+            "description": "Optional scope strings narrowing the capability.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "compat": {
+      "additionalProperties": false,
+      "properties": {
+        "engine": {
+          "description": "Semver requirement on the agent runtime.",
+          "type": "string"
+        },
+        "engine_name": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "dependencies": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "req": {
+            "description": "Semver requirement, e.g. ^1.2 or >=1.0, <2.0.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "req"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "description": {
+      "type": "string"
+    },
+    "entrypoint": {
+      "description": "Relative path to the skill entrypoint.",
+      "type": "string"
+    },
+    "inputs": {
+      "$ref": "#/$defs/ioFieldArray"
+    },
+    "license": {
+      "type": "string"
+    },
+    "manifest_version": {
+      "default": 1,
+      "description": "Manifest schema version.",
+      "maximum": 1,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "name": {
+      "description": "Skill name; lowercase identifier.",
+      "pattern": "^[a-z0-9]([a-z0-9._-]*[a-z0-9])?$",
+      "type": "string"
+    },
+    "outputs": {
+      "$ref": "#/$defs/ioFieldArray"
+    },
+    "tags": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "version": {
+      "description": "Semantic version (semver 2.0.0).",
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "version"
+  ],
+  "title": "Agent Skill Manifest",
+  "type": "object"
+}
